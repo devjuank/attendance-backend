@@ -35,7 +35,7 @@ func NewRouter(
 func (r *Router) Setup(engine *gin.Engine) {
 	// Global Middleware
 	engine.Use(middleware.CORSMiddleware(r.cfg))
-	engine.Use(gin.Logger())
+	engine.Use(middleware.LoggerMiddleware()) // Custom logger with error details
 	engine.Use(gin.Recovery())
 
 	// Health Check

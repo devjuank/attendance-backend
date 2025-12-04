@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/spf13/viper"
@@ -101,7 +102,7 @@ func LoadConfig() (*Config, error) {
 			RefreshExpiration: viper.GetDuration("JWT_REFRESH_EXPIRATION"),
 		},
 		CORS: CORSConfig{
-			AllowedOrigins: viper.GetStringSlice("ALLOWED_ORIGINS"),
+			AllowedOrigins: parseAllowedOrigins(),
 		},
 		Logging: LoggingConfig{
 			Level: viper.GetString("LOG_LEVEL"),
@@ -144,6 +145,26 @@ func setDefaults() {
 
 	viper.SetDefault("DEFAULT_PAGE_SIZE", 20)
 	viper.SetDefault("MAX_PAGE_SIZE", 100)
+}
+
+// parseAllowedOrigins parsea ALLOWED_ORIGINS desde variable de entorno
+// Maneja formato: "http://localhost:3000,http://localhost:5173"
+func parseAllowedOrigins() []string {
+	originsStr := viper.GetString("ALLOWED_ORIGINS")
+	if originsStr == "" {
+		return []string{}
+	}
+
+	// Split por coma y limpiar espacios
+	origins := []string{}
+	for _, origin := range strings.Split(originsStr, ",") {
+		trimmed := strings.TrimSpace(origin)
+		if trimmed != "" {
+			origins = append(origins, trimmed)
+		}
+	}
+
+	return origins
 }
 
 // validateConfig valida que la configuración tenga los valores críticos
