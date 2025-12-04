@@ -53,58 +53,58 @@
 
 ---
 
-## Fase 3: Capa de Infraestructura
+## Fase 3: Capa de Infraestructura ✅
 
 ### 3.1 Repositorios - Interfaces
-- [ ] Definir interface `UserRepository`
-- [ ] Definir interface `DepartmentRepository`
-- [ ] Definir interface `AttendanceRepository`
-- [ ] Definir interface `RefreshTokenRepository`
+- [x] Definir interface `UserRepository`
+- [x] Definir interface `DepartmentRepository`
+- [x] Definir interface `AttendanceRepository`
+- [x] Definir interface `RefreshTokenRepository`
 
 ### 3.2 Repositorios - Implementación
-- [ ] Implementar `UserRepositoryImpl` con GORM
-- [ ] Implementar `DepartmentRepositoryImpl` con GORM
-- [ ] Implementar `AttendanceRepositoryImpl` con GORM
-- [ ] Implementar `RefreshTokenRepositoryImpl` con GORM
+- [x] Implementar `UserRepositoryImpl` con GORM
+- [x] Implementar `DepartmentRepositoryImpl` con GORM
+- [x] Implementar `AttendanceRepositoryImpl` con GORM
+- [x] Implementar `RefreshTokenRepositoryImpl` con GORM
 
 ---
 
-## Fase 4: Capa de Servicios (Lógica de Negocio)
+## Fase 4: Capa de Servicios (Lógica de Negocio) ✅
 
 ### 4.1 Utilidades
-- [ ] Crear utilidad para hash de passwords (bcrypt)
-- [ ] Crear utilidad para generación de JWT
-- [ ] Crear utilidad para validación de JWT
-- [ ] Crear utilidad para refresh tokens
-- [ ] Crear validadores personalizados
+- [x] Crear utilidad para hash de passwords (bcrypt)
+- [x] Crear utilidad para generación de JWT
+- [x] Crear utilidad para validación de JWT
+- [x] Crear utilidad para refresh tokens
+- [x] Crear validadores personalizados (via go-playground/validator)
 
 ### 4.2 Auth Service
-- [ ] Implementar `Register` (validación, hash, creación de usuario)
-- [ ] Implementar `Login` (validación, verificación, generación de tokens)
-- [ ] Implementar `RefreshToken` (validación y renovación)
-- [ ] Implementar `Logout` (invalidación de tokens)
+- [x] Implementar `Register` (validación, hash, creación de usuario)
+- [x] Implementar `Login` (validación, verificación, generación de tokens)
+- [x] Implementar `RefreshToken` (validación y renovación)
+- [x] Implementar `Logout` (invalidación de tokens)
 
 ### 4.3 User Service
-- [ ] Implementar `GetAllUsers` (con paginación)
-- [ ] Implementar `GetUserByID`
-- [ ] Implementar `GetUserByEmail`
-- [ ] Implementar `UpdateUser`
-- [ ] Implementar `DeleteUser`
-- [ ] Implementar `ChangePassword`
-- [ ] Implementar `GetProfile`
+- [x] Implementar `GetAllUsers` (con paginación)
+- [x] Implementar `GetUserByID`
+- [x] Implementar `GetUserByEmail`
+- [x] Implementar `UpdateUser`
+- [x] Implementar `DeleteUser`
+- [x] Implementar `ChangePassword`
+- [x] Implementar `GetProfile`
 
 ### 4.4 Department Service
-- [ ] Implementar CRUD completo de departamentos
-- [ ] Implementar asignación de usuarios a departamentos
-- [ ] Implementar listado de usuarios por departamento
+- [x] Implementar CRUD completo de departamentos
+- [x] Implementar asignación de usuarios a departamentos
+- [x] Implementar listado de usuarios por departamento
 
 ### 4.5 Attendance Service
-- [ ] Implementar `CheckIn` (validaciones de negocio)
-- [ ] Implementar `CheckOut`
-- [ ] Implementar `GetAttendanceHistory` (con filtros)
-- [ ] Implementar `GetTodayAttendance`
-- [ ] Implementar `GetUserAttendance`
-- [ ] Implementar cálculo de estado (present, late, absent)
+- [x] Implementar `CheckIn` (validaciones de negocio)
+- [x] Implementar `CheckOut`
+- [x] Implementar `GetAttendanceHistory` (con filtros)
+- [x] Implementar `GetTodayAttendance`
+- [x] Implementar `GetUserAttendance`
+- [x] Implementar cálculo de estado (present, late, absent)
 
 ### 4.6 Report Service
 - [ ] Implementar generación de reportes por usuario
@@ -115,51 +115,51 @@
 
 ---
 
-## Fase 5: Capa de API (Handlers y Routes)
+## Fase 5: Capa de API (Handlers y Routes) ✅
 
 ### 5.1 Middleware
-- [ ] Crear middleware de autenticación JWT
-- [ ] Crear middleware de autorización por roles
-- [ ] Crear middleware de logging de requests
-- [ ] Crear middleware de CORS
+- [x] Crear middleware de autenticación JWT
+- [x] Crear middleware de autorización por roles
+- [x] Crear middleware de logging de requests (Gin default)
+- [x] Crear middleware de CORS
 - [ ] Crear middleware de rate limiting
-- [ ] Crear middleware de recovery (panic handler)
-- [ ] Crear middleware de validación de request body
+- [x] Crear middleware de recovery (panic handler - Gin default)
+- [x] Crear middleware de validación de request body (Gin default)
 
 ### 5.2 DTOs (Data Transfer Objects)
-- [ ] Crear DTOs para Auth (RegisterRequest, LoginRequest, LoginResponse)
-- [ ] Crear DTOs para User (CreateUserRequest, UpdateUserRequest, UserResponse)
-- [ ] Crear DTOs para Attendance (CheckInRequest, CheckOutRequest, AttendanceResponse)
-- [ ] Crear DTOs para Department (CreateDepartmentRequest, etc.)
+- [x] Crear DTOs para Auth (RegisterRequest, LoginRequest, LoginResponse)
+- [x] Crear DTOs para User (CreateUserRequest, UpdateUserRequest, UserResponse)
+- [x] Crear DTOs para Attendance (CheckInRequest, CheckOutRequest, AttendanceResponse)
+- [x] Crear DTOs para Department (CreateDepartmentRequest, etc.)
 - [ ] Crear DTOs para Reports (ReportRequest, ReportResponse)
 
 ### 5.3 Handlers - Auth
-- [ ] Implementar `POST /api/v1/auth/register`
-- [ ] Implementar `POST /api/v1/auth/login`
-- [ ] Implementar `POST /api/v1/auth/refresh`
-- [ ] Implementar `POST /api/v1/auth/logout`
+- [x] Implementar `POST /api/v1/auth/register`
+- [x] Implementar `POST /api/v1/auth/login`
+- [x] Implementar `POST /api/v1/auth/refresh`
+- [x] Implementar `POST /api/v1/auth/logout`
 
 ### 5.4 Handlers - Users
-- [ ] Implementar `GET /api/v1/users` (Admin only)
-- [ ] Implementar `GET /api/v1/users/:id`
-- [ ] Implementar `PUT /api/v1/users/:id`
-- [ ] Implementar `DELETE /api/v1/users/:id` (Admin only)
-- [ ] Implementar `GET /api/v1/users/me`
-- [ ] Implementar `PUT /api/v1/users/me/password`
+- [x] Implementar `GET /api/v1/users` (Admin only)
+- [x] Implementar `GET /api/v1/users/:id`
+- [x] Implementar `PUT /api/v1/users/:id`
+- [x] Implementar `DELETE /api/v1/users/:id` (Admin only)
+- [x] Implementar `GET /api/v1/users/me`
+- [x] Implementar `PUT /api/v1/users/me/password`
 
 ### 5.5 Handlers - Attendance
-- [ ] Implementar `POST /api/v1/attendance/check-in`
-- [ ] Implementar `POST /api/v1/attendance/check-out`
-- [ ] Implementar `GET /api/v1/attendance/me`
-- [ ] Implementar `GET /api/v1/attendance/user/:id`
-- [ ] Implementar `GET /api/v1/attendance/today`
+- [x] Implementar `POST /api/v1/attendance/check-in`
+- [x] Implementar `POST /api/v1/attendance/check-out`
+- [x] Implementar `GET /api/v1/attendance/today`
+- [x] Implementar `GET /api/v1/attendance/history`
+- [x] Implementar `GET /api/v1/attendance/range` (por fecha)y`
 
 ### 5.6 Handlers - Departments
-- [ ] Implementar `GET /api/v1/departments`
-- [ ] Implementar `POST /api/v1/departments` (Admin only)
-- [ ] Implementar `GET /api/v1/departments/:id`
-- [ ] Implementar `PUT /api/v1/departments/:id` (Admin only)
-- [ ] Implementar `DELETE /api/v1/departments/:id` (Admin only)
+- [x] Implementar `GET /api/v1/departments` (listar todos)
+- [x] Implementar `GET /api/v1/departments/:id`
+- [x] Implementar `POST /api/v1/departments` (Admin only)
+- [x] Implementar `PUT /api/v1/departments/:id` (Admin only)
+- [x] Implementar `DELETE /api/v1/departments/:id` (Admin only)
 
 ### 5.7 Handlers - Reports
 - [ ] Implementar `GET /api/v1/reports/attendance`
@@ -168,11 +168,11 @@
 - [ ] Implementar `GET /api/v1/reports/export`
 
 ### 5.8 Routes Setup
-- [ ] Configurar router principal con Gin
-- [ ] Agrupar rutas por versión (`/api/v1`)
-- [ ] Aplicar middleware globales
-- [ ] Aplicar middleware específicos por grupo de rutas
-- [ ] Crear endpoint de health check (`GET /health`)
+- [x] Configurar router principal
+- [x] Agrupar rutas por recurso
+- [x] Aplicar middleware de autenticación a rutas protegidas
+- [x] Aplicar middleware de autorización (roles)
+- [x] Documentar endpoints en READMEhealth check (`GET /health`)
 
 ---
 

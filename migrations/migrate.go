@@ -106,11 +106,12 @@ func seedData(db *gorm.DB) {
 		log.Println("Seeding initial data...")
 
 		// Crear admin por defecto (password: admin123)
-		// Nota: En producción esto debería ser más seguro
-		// El hash es de "admin123"
+		// Hash generado con bcrypt para "admin123"
+		hashedPassword := "$2a$10$OuAf1TXdHzjtsfjF9mXwwObPzodmsuGUmVXWby.gtLS2OpY5cqIdy"
+
 		admin := models.User{
 			Email:     "admin@example.com",
-			Password:  "$2a$10$3QxDjD1ORc1yDDOogpq0r.WzF2vJ.9.0.0.0.0.0.0.0.0", // Placeholder hash
+			Password:  hashedPassword,
 			FirstName: "Admin",
 			LastName:  "System",
 			Role:      models.RoleAdmin,
@@ -120,7 +121,9 @@ func seedData(db *gorm.DB) {
 		if err := db.Create(&admin).Error; err != nil {
 			log.Printf("Failed to seed admin user: %v", err)
 		} else {
-			log.Println("Admin user created: admin@example.com")
+			log.Println("Admin user created successfully")
+			log.Println("  Email: admin@example.com")
+			log.Println("  Password: admin123")
 		}
 	}
 }

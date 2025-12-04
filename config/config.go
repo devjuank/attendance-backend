@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/spf13/viper"
 )
@@ -34,8 +35,8 @@ type DatabaseConfig struct {
 
 type JWTConfig struct {
 	Secret            string
-	Expiration        string
-	RefreshExpiration string
+	Expiration        time.Duration
+	RefreshExpiration time.Duration
 }
 
 type CORSConfig struct {
@@ -96,8 +97,8 @@ func LoadConfig() (*Config, error) {
 		},
 		JWT: JWTConfig{
 			Secret:            viper.GetString("JWT_SECRET"),
-			Expiration:        viper.GetString("JWT_EXPIRATION"),
-			RefreshExpiration: viper.GetString("JWT_REFRESH_EXPIRATION"),
+			Expiration:        viper.GetDuration("JWT_EXPIRATION"),
+			RefreshExpiration: viper.GetDuration("JWT_REFRESH_EXPIRATION"),
 		},
 		CORS: CORSConfig{
 			AllowedOrigins: viper.GetStringSlice("ALLOWED_ORIGINS"),

@@ -10,7 +10,11 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	"github.com/juank/attendance-backend/config"
+	"github.com/juank/attendance-backend/internal/application/services"
 	"github.com/juank/attendance-backend/internal/infrastructure/database"
+	"github.com/juank/attendance-backend/internal/infrastructure/persistence"
+	"github.com/juank/attendance-backend/internal/interfaces/api/handlers"
+	"github.com/juank/attendance-backend/internal/interfaces/api/routes"
 	"github.com/juank/attendance-backend/pkg/logger"
 	"go.uber.org/zap"
 )
@@ -45,39 +49,35 @@ func main() {
 		zap.String("port", cfg.Server.Port),
 	)
 
+	// Inicializar Repositorios
+	userRepo := persistence.NewUserRepository(db)
+	deptRepo := persistence.NewDepartmentRepository(db)
+	attendanceRepo := persistence.NewAttendanceRepository(db)
+	refreshTokenRepo := persistence.NewRefreshTokenRepository(db)
+
+	// Inicializar Servicios
+	authService := services.NewAuthService(userRepo, refreshTokenRepo, cfg)
+	userService := services.NewUserService(userRepo)
+	deptService := services.NewDepartmentService(deptRepo)
+	attendanceService := services.NewAttendanceService(attendanceRepo)
+
+	// Inicializar Handlers
+	authHandler := handlers.NewAuthHandler(authService)
+	userHandler := handlers.NewUserHandler(userService)
+	deptHandler := handlers.NewDepartmentHandler(deptService)
+	attendanceHandler := handlers.NewAttendanceHandler(attendanceService)
+
 	// Configurar Gin según el entorno
 	if cfg.Server.Env == "production" {
 		gin.SetMode(gin.ReleaseMode)
 	}
 
 	// Crear router
-	router := gin.Default()
+	engine := gin.Default()
 
-	// Health check endpoint
-	router.GET("/health", func(c *gin.Context) {
-		sqlDB, err := db.DB()
-		dbStatus := "up"
-		if err != nil || sqlDB.Ping() != nil {
-			dbStatus = "down"
-		}
-
-		c.JSON(200, gin.H{
-			"status":   "ok",
-			"service":  "attendance-backend",
-			"version":  "1.0.0",
-			"database": dbStatus,
-		})
-	})
-
-	// API v1 routes (placeholder)
-	v1 := router.Group("/api/v1")
-	{
-		v1.GET("/ping", func(c *gin.Context) {
-			c.JSON(200, gin.H{
-				"message": "pong",
-			})
-		})
-	}
+	// Configurar rutas
+	router := routes.NewRouter(cfg, authHandler, userHandler, deptHandler, attendanceHandler)
+	router.Setup(engine)
 
 	// Configurar servidor
 	serverAddr := fmt.Sprintf("%s:%s", cfg.Server.Host, cfg.Server.Port)
@@ -88,7 +88,7 @@ func main() {
 
 	// Graceful shutdown
 	go func() {
-		if err := router.Run(serverAddr); err != nil {
+		if err := engine.Run(serverAddr); err != nil {
 			logger.Fatal("Failed to start server", zap.Error(err))
 		}
 	}()
