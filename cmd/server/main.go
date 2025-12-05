@@ -54,18 +54,21 @@ func main() {
 	deptRepo := persistence.NewDepartmentRepository(db)
 	attendanceRepo := persistence.NewAttendanceRepository(db)
 	refreshTokenRepo := persistence.NewRefreshTokenRepository(db)
+	qrRepo := persistence.NewQRCodeRepository(db)
 
 	// Inicializar Servicios
 	authService := services.NewAuthService(userRepo, refreshTokenRepo, cfg)
 	userService := services.NewUserService(userRepo)
 	deptService := services.NewDepartmentService(deptRepo)
+	qrService := services.NewQRService(qrRepo)
 	attendanceService := services.NewAttendanceService(attendanceRepo)
 
 	// Inicializar Handlers
 	authHandler := handlers.NewAuthHandler(authService)
 	userHandler := handlers.NewUserHandler(userService)
 	deptHandler := handlers.NewDepartmentHandler(deptService)
-	attendanceHandler := handlers.NewAttendanceHandler(attendanceService)
+	qrHandler := handlers.NewQRHandler(qrService)
+	attendanceHandler := handlers.NewAttendanceHandler(attendanceService, qrService)
 
 	// Configurar Gin según el entorno
 	if cfg.Server.Env == "production" {
@@ -76,7 +79,7 @@ func main() {
 	engine := gin.Default()
 
 	// Configurar rutas
-	router := routes.NewRouter(cfg, authHandler, userHandler, deptHandler, attendanceHandler)
+	router := routes.NewRouter(cfg, authHandler, userHandler, deptHandler, attendanceHandler, qrHandler)
 	router.Setup(engine)
 
 	// Configurar servidor

@@ -19,67 +19,32 @@ func NewAttendanceService(attendanceRepo repositories.AttendanceRepository) serv
 	}
 }
 
-func (s *AttendanceServiceImpl) CheckIn(req *services.CheckInRequest) (*models.Attendance, error) {
-	// Verificar si ya hizo check-in hoy y no ha hecho check-out
-	lastAttendance, err := s.attendanceRepo.GetLastAttendance(req.UserID)
-	if err == nil && lastAttendance != nil {
-		// Si el último registro es de hoy y no tiene check-out, error
-		today := time.Now().Truncate(24 * time.Hour)
-		lastDate := lastAttendance.CheckIn.Truncate(24 * time.Hour)
+func (s *AttendanceServiceImpl) MarkAttendance(req *services.MarkAttendanceRequest) (*models.Attendance, error) {
+	// Check if user already marked attendance today
+	today := time.Now().Truncate(24 * time.Hour)
+	tomorrow := today.Add(24 * time.Hour)
 
-		if today.Equal(lastDate) && lastAttendance.CheckOut == nil {
-			return nil, errors.New("user already checked in")
-		}
+	existingAttendances, err := s.attendanceRepo.GetByDateRange(req.UserID, today, tomorrow)
+	if err == nil && len(existingAttendances) > 0 {
+		return nil, errors.New("user already marked attendance today")
 	}
 
-	// Determinar estado (ejemplo simple: tarde si es después de las 9:00 AM)
+	// Determine status based on check-in time
 	now := time.Now()
-	status := models.StatusPresent
+	status := s.calculateStatus(now)
 
-	// Lógica de negocio simple para determinar si llega tarde (ej: después de las 9:15)
-	limitTime := time.Date(now.Year(), now.Month(), now.Day(), 9, 15, 0, 0, now.Location())
-	if now.After(limitTime) {
-		status = models.StatusLate
-	}
-
+	// Create attendance record
 	attendance := &models.Attendance{
 		UserID:   req.UserID,
 		CheckIn:  now,
-		Status:   status,
+		Status:   string(status),
 		Location: req.Location,
 		Notes:    req.Notes,
+		QRToken:  req.QRToken,
 	}
 
-	if err := s.attendanceRepo.Create(attendance); err != nil {
-		return nil, err
-	}
-
-	return attendance, nil
-}
-
-func (s *AttendanceServiceImpl) CheckOut(req *services.CheckOutRequest) (*models.Attendance, error) {
-	// Buscar el último registro sin check-out
-	attendance, err := s.attendanceRepo.GetLastAttendance(req.UserID)
+	err = s.attendanceRepo.Create(attendance)
 	if err != nil {
-		return nil, errors.New("no active check-in found")
-	}
-
-	if attendance.CheckOut != nil {
-		return nil, errors.New("user already checked out")
-	}
-
-	now := time.Now()
-	attendance.CheckOut = &now
-
-	if req.Notes != "" {
-		if attendance.Notes != "" {
-			attendance.Notes += "; " + req.Notes
-		} else {
-			attendance.Notes = req.Notes
-		}
-	}
-
-	if err := s.attendanceRepo.Update(attendance); err != nil {
 		return nil, err
 	}
 
@@ -118,4 +83,22 @@ func (s *AttendanceServiceImpl) GetTodayAttendance(userID uint) (*models.Attenda
 
 func (s *AttendanceServiceImpl) GetByDateRange(userID uint, startDate, endDate time.Time) ([]models.Attendance, error) {
 	return s.attendanceRepo.GetByDateRange(userID, startDate, endDate)
+}
+
+// calculateStatus determines the attendance status based on check-in time
+func (s *AttendanceServiceImpl) calculateStatus(checkInTime time.Time) models.AttendanceStatus {
+	// Business rule: Late if after 9:15 AM
+	limitTime := time.Date(
+		checkInTime.Year(),
+		checkInTime.Month(),
+		checkInTime.Day(),
+		9, 15, 0, 0,
+		checkInTime.Location(),
+	)
+
+	if checkInTime.After(limitTime) {
+		return models.StatusLate
+	}
+
+	return models.StatusPresent
 }

@@ -461,31 +461,84 @@ Delete department.
 
 ### ⏰ Attendance
 
-#### POST /attendance/check-in
-Record check-in for current user.
+#### GET /qr/active
+Get the currently active QR code for attendance.
+
+**Authentication:** Required  
+**Role:** Admin only
+
+**Response (200 OK):**
+```json
+{
+  "qr_token": "abc123xyz789def456",
+  "expires_at": "2025-12-04T22:40:00Z",
+  "created_at": "2025-12-04T22:30:00Z",
+  "is_active": true
+}
+```
+
+**Response (404 Not Found):**
+```json
+{
+  "error": "no active QR code found"
+}
+```
+
+**Notes:**
+- QR codes auto-expire after 10 minutes
+- Only one QR code can be active at a time
+- Backend auto-generates new QR if none exists or current expired
+
+---
+
+#### POST /qr/generate
+Force generation of a new QR code (invalidates any previous active QR).
+
+**Authentication:** Required  
+**Role:** Admin only
+
+**Response (201 Created):**
+```json
+{
+  "qr_token": "def456uvw012ghi789",
+  "expires_at": "2025-12-04T22:50:00Z",
+  "created_at": "2025-12-04T22:40:00Z",
+  "is_active": true
+}
+```
+
+**Notes:**
+- Invalidates any previously active QR code
+- New QR is valid for 10 minutes from creation
+
+---
+
+#### POST /attendance/mark
+Mark attendance using scanned QR token.
 
 **Authentication:** Required
 
 **Request Body:**
 ```json
 {
+  "qr_token": "abc123xyz789def456",
   "location": "Oficina Central",
-  "notes": "Entrada del día"
+  "notes": "Marked via QR scan"
 }
 ```
 
 **Response (201 Created):**
 ```json
 {
-  "id": 1,
-  "user_id": 1,
-  "check_in": "2025-12-04T09:30:00Z",
+  "id": 15,
+  "user_id": 5,
+  "check_in": "2025-12-04T22:35:00Z",
   "check_out": null,
-  "status": "late",
-  "notes": "Entrada del día",
+  "status": "present",
+  "notes": "Marked via QR scan",
   "location": "Oficina Central",
-  "created_at": "2025-12-04T09:30:00Z",
-  "updated_at": "2025-12-04T09:30:00Z"
+  "created_at": "2025-12-04T22:35:00Z",
+  "updated_at": "2025-12-04T22:35:00Z"
 }
 ```
 
@@ -495,39 +548,9 @@ Record check-in for current user.
 - `absent` - No check-in
 
 **Errors:**
-- `400` - User already checked in
-
----
-
-#### POST /attendance/check-out
-Record check-out for current user.
-
-**Authentication:** Required
-
-**Request Body:**
-```json
-{
-  "notes": "Salida del día"
-}
-```
-
-**Response (200 OK):**
-```json
-{
-  "id": 1,
-  "user_id": 1,
-  "check_in": "2025-12-04T09:30:00Z",
-  "check_out": "2025-12-04T18:00:00Z",
-  "status": "late",
-  "notes": "Entrada del día; Salida del día",
-  "location": "Oficina Central",
-  "created_at": "2025-12-04T09:30:00Z",
-  "updated_at": "2025-12-04T18:00:00Z"
-}
-```
-
-**Errors:**
-- `400` - No active check-in found or already checked out
+- `400` - Invalid or expired QR token
+- `400` - User already marked attendance today
+- `404` - QR token not found
 
 ---
 
@@ -644,8 +667,9 @@ Get attendance records for a date range.
 | POST /departments | - | - | - | ✅ |
 | PUT /departments/:id | - | - | - | ✅ |
 | DELETE /departments/:id | - | - | - | ✅ |
-| POST /attendance/check-in | - | ✅ | ✅ | ✅ |
-| POST /attendance/check-out | - | ✅ | ✅ | ✅ |
+| GET /qr/active | - | - | - | ✅ |
+| POST /qr/generate | - | - | - | ✅ |
+| POST /attendance/mark | - | ✅ | ✅ | ✅ |
 | GET /attendance/today | - | ✅ | ✅ | ✅ |
 | GET /attendance/history | - | ✅ | ✅ | ✅ |
 | GET /attendance/range | - | ✅ | ✅ | ✅ |

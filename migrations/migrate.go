@@ -73,6 +73,7 @@ func runMigrations(db *gorm.DB) {
 		&models.Department{},
 		&models.Attendance{},
 		&models.RefreshToken{},
+		&models.QRCode{},
 	); err != nil {
 		log.Fatalf("Failed to run migrations (step 1): %v", err)
 	}
@@ -87,6 +88,7 @@ func runMigrations(db *gorm.DB) {
 		&models.Department{},
 		&models.Attendance{},
 		&models.RefreshToken{},
+		&models.QRCode{},
 	); err != nil {
 		log.Fatalf("Failed to run migrations (step 2): %v", err)
 	}

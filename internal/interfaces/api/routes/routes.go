@@ -14,6 +14,7 @@ type Router struct {
 	userHandler       *handlers.UserHandler
 	deptHandler       *handlers.DepartmentHandler
 	attendanceHandler *handlers.AttendanceHandler
+	qrHandler         *handlers.QRHandler
 }
 
 func NewRouter(
@@ -22,6 +23,7 @@ func NewRouter(
 	userHandler *handlers.UserHandler,
 	deptHandler *handlers.DepartmentHandler,
 	attendanceHandler *handlers.AttendanceHandler,
+	qrHandler *handlers.QRHandler,
 ) *Router {
 	return &Router{
 		cfg:               cfg,
@@ -29,6 +31,7 @@ func NewRouter(
 		userHandler:       userHandler,
 		deptHandler:       deptHandler,
 		attendanceHandler: attendanceHandler,
+		qrHandler:         qrHandler,
 	}
 }
 
@@ -89,11 +92,18 @@ func (r *Router) Setup(engine *gin.Engine) {
 				departments.DELETE("/:id", middleware.RoleMiddleware(string(models.RoleAdmin)), r.deptHandler.Delete)
 			}
 
+			// QR Routes (Admin only)
+			qr := protected.Group("/qr")
+			qr.Use(middleware.RoleMiddleware(string(models.RoleAdmin)))
+			{
+				qr.GET("/active", r.qrHandler.GetActive)
+				qr.POST("/generate", r.qrHandler.Generate)
+			}
+
 			// Attendance Routes
 			attendance := protected.Group("/attendance")
 			{
-				attendance.POST("/check-in", r.attendanceHandler.CheckIn)
-				attendance.POST("/check-out", r.attendanceHandler.CheckOut)
+				attendance.POST("/mark", r.attendanceHandler.MarkAttendance)
 				attendance.GET("/today", r.attendanceHandler.GetToday)
 				attendance.GET("/history", r.attendanceHandler.GetMyHistory)
 				attendance.GET("/range", r.attendanceHandler.GetByDateRange)
