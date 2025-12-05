@@ -4,12 +4,13 @@ Sistema de gestión de asistencia desarrollado en Go con arquitectura limpia.
 
 ## 🚀 Características
 
-- ✅ Autenticación JWT
-- ✅ Gestión de usuarios y roles
-- ✅ Registro de asistencia (check-in/check-out)
+- ✅ **Sistema de QR dinámico** - QR codes que se auto-renuevan cada 10 minutos
+- ✅ **Marcado de asistencia por escaneo** - Empleados marcan asistencia escaneando QR
+- ✅ Autenticación JWT con refresh tokens
+- ✅ Gestión de usuarios y roles (Admin, Manager, Employee)
 - ✅ Gestión de departamentos
-- ✅ Generación de reportes
-- ✅ API RESTful documentada con Swagger
+- ✅ Historial de asistencia y reportes
+- ✅ API RESTful documentada
 
 ## 🛠️ Stack Tecnológico
 
@@ -130,30 +131,29 @@ Variables principales:
 
 ### Usuarios
 - `GET /api/v1/users` - Listar usuarios (Admin)
-- `GET /api/v1/users/:id` - Obtener usuario
-- `PUT /api/v1/users/:id` - Actualizar usuario
+- `GET /api/v1/users/:id` - Obtener usuario (Admin)
+- `PUT /api/v1/users/:id` - Actualizar usuario (Admin)
 - `DELETE /api/v1/users/:id` - Eliminar usuario (Admin)
 - `GET /api/v1/users/me` - Perfil actual
 
+### QR Codes (Admin only)
+- `GET /api/v1/qr/active` - Obtener QR activo (auto-genera si no existe)
+- `POST /api/v1/qr/generate` - Generar nuevo QR (invalida el anterior)
+
 ### Asistencia
-- `POST /api/v1/attendance/check-in` - Registrar entrada
-- `POST /api/v1/attendance/check-out` - Registrar salida
-- `GET /api/v1/attendance/me` - Mi historial
-- `GET /api/v1/attendance/today` - Asistencia del día
+- `POST /api/v1/attendance/mark` - Marcar asistencia con QR token
+- `GET /api/v1/attendance/today` - Asistencia del día actual
+- `GET /api/v1/attendance/history` - Historial de asistencia (paginado)
+- `GET /api/v1/attendance/range` - Asistencia por rango de fechas
 
 ### Departamentos
 - `GET /api/v1/departments` - Listar departamentos
 - `POST /api/v1/departments` - Crear departamento (Admin)
 - `GET /api/v1/departments/:id` - Obtener departamento
-- `PUT /api/v1/departments/:id` - Actualizar departamento
-- `DELETE /api/v1/departments/:id` - Eliminar departamento
+- `PUT /api/v1/departments/:id` - Actualizar departamento (Admin)
+- `DELETE /api/v1/departments/:id` - Eliminar departamento (Admin)
 
-### Reportes
-- `GET /api/v1/reports/attendance` - Reporte de asistencia
-- `GET /api/v1/reports/user/:id` - Reporte por usuario
-- `GET /api/v1/reports/department/:id` - Reporte por departamento
-
-Ver documentación completa en `/swagger/index.html` cuando el servidor esté corriendo.
+Ver documentación completa en [API_CONTRACT.md](API_CONTRACT.md).
 
 ## 🧪 Testing
 

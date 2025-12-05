@@ -72,26 +72,31 @@ attendance-backend/
 - Perfil de usuario
 - Cambio de contraseña
 
-### 3. Registro de Asistencia
-- Check-in/Check-out
-- Registro de ubicación (opcional)
-- Historial de asistencia
-- Estados: Present, Absent, Late, On Leave
+### 3. Sistema de Asistencia con QR Dinámico
+- **Generación de QR**: Admin genera QR codes que expiran cada 10 minutos
+- **Marcado por escaneo**: Empleados escanean QR para marcar asistencia
+- **Validación automática**: Sistema valida QR y marca asistencia
+- **One attendance per day**: Solo un registro por usuario por día
+- **Estados automáticos**: Present (antes 9:15 AM), Late (después 9:15 AM)
+- **Historial completo**: Registro de todas las asistencias con QR token usado
+- **Tokens seguros**: UUID v4 para QR codes
 
 ### 4. Gestión de Departamentos
 - CRUD de departamentos
 - Asignación de usuarios a departamentos
+- Managers por departamento
 
-### 5. Reportes
-- Reporte de asistencia por usuario
-- Reporte de asistencia por departamento
-- Reporte de asistencia por rango de fechas
-- Exportación a CSV/PDF
-
-### 6. Configuración del Sistema
-- Horarios de trabajo
-- Políticas de asistencia
-- Notificaciones
+### QR Code Model
+```go
+type QRCode struct {
+    ID        uint      `gorm:"primaryKey"`
+    Token     string    `gorm:"uniqueIndex;not null"` // UUID v4
+    ExpiresAt time.Time `gorm:"not null"`
+    IsActive  bool      `gorm:"default:true"`
+    CreatedAt time.Time
+    UpdatedAt time.Time
+}
+```
 
 ## Modelos de Datos
 
@@ -119,10 +124,10 @@ type Attendance struct {
     UserID    uint      `gorm:"not null"`
     User      User
     CheckIn   time.Time `gorm:"not null"`
-    CheckOut  *time.Time
-    Status    string    `gorm:"not null"` // present, late, absent, on_leave
+    Status    string    `gorm:"not null"` // present, late
     Notes     string
     Location  string
+    QRToken   string    `gorm:"index"` // QR code usado para marcar
     CreatedAt time.Time
     UpdatedAt time.Time
 }
@@ -157,12 +162,15 @@ type Department struct {
 - `GET /api/v1/users/me` - Perfil del usuario actual
 - `PUT /api/v1/users/me/password` - Cambiar contraseña
 
+### QR Codes (Admin only)
+- `GET /api/v1/qr/active` - Obtener QR activo (auto-genera si no existe)
+- `POST /api/v1/qr/generate` - Generar nuevo QR code
+
 ### Asistencia
-- `POST /api/v1/attendance/check-in` - Registrar entrada
-- `POST /api/v1/attendance/check-out` - Registrar salida
-- `GET /api/v1/attendance/me` - Mi historial de asistencia
-- `GET /api/v1/attendance/user/:id` - Historial de usuario (Manager/Admin)
-- `GET /api/v1/attendance/today` - Asistencia del día
+- `POST /api/v1/attendance/mark` - Marcar asistencia con QR token
+- `GET /api/v1/attendance/today` - Asistencia del día actual
+- `GET /api/v1/attendance/history` - Historial de asistencia (paginado)
+- `GET /api/v1/attendance/range` - Asistencia por rango de fechas
 
 ### Departamentos
 - `GET /api/v1/departments` - Listar departamentos
@@ -245,9 +253,9 @@ LOG_LEVEL=info
 
 ## Roadmap Futuro
 
+- [x] Sistema de QR dinámico para asistencia ✅
 - [ ] Notificaciones push
 - [ ] Integración con sistemas de RRHH
-- [ ] Reconocimiento facial para check-in
 - [ ] Geofencing para validar ubicación
 - [ ] Dashboard de analytics en tiempo real
 - [ ] API GraphQL como alternativa
