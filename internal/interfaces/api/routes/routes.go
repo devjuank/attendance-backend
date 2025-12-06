@@ -15,6 +15,7 @@ type Router struct {
 	deptHandler       *handlers.DepartmentHandler
 	attendanceHandler *handlers.AttendanceHandler
 	qrHandler         *handlers.QRHandler
+	eventHandler      *handlers.EventHandler
 }
 
 func NewRouter(
@@ -24,6 +25,7 @@ func NewRouter(
 	deptHandler *handlers.DepartmentHandler,
 	attendanceHandler *handlers.AttendanceHandler,
 	qrHandler *handlers.QRHandler,
+	eventHandler *handlers.EventHandler,
 ) *Router {
 	return &Router{
 		cfg:               cfg,
@@ -32,6 +34,7 @@ func NewRouter(
 		deptHandler:       deptHandler,
 		attendanceHandler: attendanceHandler,
 		qrHandler:         qrHandler,
+		eventHandler:      eventHandler,
 	}
 }
 
@@ -92,12 +95,29 @@ func (r *Router) Setup(engine *gin.Engine) {
 				departments.DELETE("/:id", middleware.RoleMiddleware(string(models.RoleAdmin)), r.deptHandler.Delete)
 			}
 
+			// Event Routes
+			events := protected.Group("/events")
+			{
+				events.GET("", r.eventHandler.GetAll)
+				events.GET("/:id", r.eventHandler.GetByID)
+
+				// Admin only
+				events.POST("", middleware.RoleMiddleware(string(models.RoleAdmin)), r.eventHandler.Create)
+				events.PUT("/:id", middleware.RoleMiddleware(string(models.RoleAdmin)), r.eventHandler.Update)
+				events.DELETE("/:id", middleware.RoleMiddleware(string(models.RoleAdmin)), r.eventHandler.Delete)
+
+				// Admin Event Attendance
+				events.GET("/:id/attendance", middleware.RoleMiddleware(string(models.RoleAdmin)), r.eventHandler.GetAttendance)
+				events.POST("/:id/attendance/manual", middleware.RoleMiddleware(string(models.RoleAdmin)), r.eventHandler.MarkManualAttendance)
+			}
+
 			// QR Routes (Admin only)
 			qr := protected.Group("/qr")
 			qr.Use(middleware.RoleMiddleware(string(models.RoleAdmin)))
 			{
 				qr.GET("/active", r.qrHandler.GetActive)
 				qr.POST("/generate", r.qrHandler.Generate)
+				qr.POST("/deactivate", r.qrHandler.Deactivate)
 			}
 
 			// Attendance Routes

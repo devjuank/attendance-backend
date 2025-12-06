@@ -384,4 +384,23 @@ build:
 - **Fase 8-9**: 2-3 días
 - **Fase 10-11**: 2-3 días
 
-**Total estimado**: 13-19 días de desarrollo
+
+## Fase 12: Arquitectura Basada en Eventos (Nuevo) ✅
+
+### 12.1 Modelos y Base de Datos
+- [x] Crear modelo `Event`
+- [x] Actualizar modelo `QRCode` con `EventID`
+- [x] Actualizar modelo `Attendance` con `EventID`
+- [x] Crear repositorio `EventRepository`
+- [x] Actualizar repositorios existentes
+
+### 12.2 Lógica de Negocio
+- [x] Crear `EventService`
+- [x] Actualizar `QRService` para soportar eventos
+- [x] Actualizar `AttendanceService` para validar evento
+
+### 12.3 API
+- [x] Crear `EventHandler`
+- [x] Actualizar `QRHandler`
+- [x] Registrar rutas de eventos
+- [x] Actualizar documentación (`API_CONTRACT.md`, `PROJECT_DESCRIPTION.md`)

@@ -19,4 +19,6 @@ type AttendanceService interface {
 	GetUserAttendance(userID uint, page, limit int) ([]models.Attendance, int64, error)
 	GetTodayAttendance(userID uint) (*models.Attendance, error)
 	GetByDateRange(userID uint, startDate, endDate time.Time) ([]models.Attendance, error)
+	GetEventAttendance(eventID uint) ([]models.Attendance, error)
+	MarkManualAttendance(eventID, userID uint, notes string) (*models.Attendance, error)
 }

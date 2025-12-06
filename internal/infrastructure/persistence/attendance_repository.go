@@ -64,3 +64,19 @@ func (r *AttendanceRepositoryImpl) GetLastAttendance(userID uint) (*models.Atten
 	}
 	return &attendance, nil
 }
+
+func (r *AttendanceRepositoryImpl) GetByEventAndUser(eventID, userID uint) (*models.Attendance, error) {
+	var attendance models.Attendance
+	if err := r.db.Where("event_id = ? AND user_id = ?", eventID, userID).First(&attendance).Error; err != nil {
+		return nil, err
+	}
+	return &attendance, nil
+}
+
+func (r *AttendanceRepositoryImpl) GetByEventID(eventID uint) ([]models.Attendance, error) {
+	var attendances []models.Attendance
+	if err := r.db.Preload("User").Where("event_id = ?", eventID).Find(&attendances).Error; err != nil {
+		return nil, err
+	}
+	return attendances, nil
+}

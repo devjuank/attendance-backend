@@ -22,21 +22,21 @@ func NewQRService(qrRepo repositories.QRCodeRepository) domainServices.QRService
 	}
 }
 
-func (s *QRServiceImpl) GetOrCreateActive() (*models.QRCode, error) {
+func (s *QRServiceImpl) GetOrCreateActive(eventID uint) (*models.QRCode, error) {
 	// Try to get active QR code
-	qr, err := s.qrRepo.GetActive()
+	qr, err := s.qrRepo.GetActive(eventID)
 	if err == nil && qr != nil {
 		// Valid active QR found
 		return qr, nil
 	}
 
 	// No active QR or error, create new one
-	return s.GenerateNew()
+	return s.GenerateNew(eventID)
 }
 
-func (s *QRServiceImpl) GenerateNew() (*models.QRCode, error) {
-	// Deactivate all existing QR codes
-	err := s.qrRepo.DeactivateAll()
+func (s *QRServiceImpl) GenerateNew(eventID uint) (*models.QRCode, error) {
+	// Deactivate all existing QR codes for this event
+	err := s.qrRepo.DeactivateAllForEvent(eventID)
 	if err != nil {
 		return nil, err
 	}
@@ -47,6 +47,7 @@ func (s *QRServiceImpl) GenerateNew() (*models.QRCode, error) {
 
 	qr := &models.QRCode{
 		Token:     token,
+		EventID:   eventID,
 		ExpiresAt: expiresAt,
 		IsActive:  true,
 	}
@@ -73,4 +74,8 @@ func (s *QRServiceImpl) ValidateToken(token string) (*models.QRCode, error) {
 	}
 
 	return qr, nil
+}
+
+func (s *QRServiceImpl) DeactivateActiveForEvent(eventID uint) error {
+	return s.qrRepo.DeactivateAllForEvent(eventID)
 }

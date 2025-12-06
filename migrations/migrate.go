@@ -71,6 +71,7 @@ func runMigrations(db *gorm.DB) {
 	if err := db.AutoMigrate(
 		&models.User{},
 		&models.Department{},
+		&models.Event{},
 		&models.Attendance{},
 		&models.RefreshToken{},
 		&models.QRCode{},
@@ -86,6 +87,7 @@ func runMigrations(db *gorm.DB) {
 	if err := db.AutoMigrate(
 		&models.User{},
 		&models.Department{},
+		&models.Event{},
 		&models.Attendance{},
 		&models.RefreshToken{},
 		&models.QRCode{},

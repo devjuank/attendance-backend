@@ -9,6 +9,8 @@ import (
 type QRCode struct {
 	ID        uint           `gorm:"primarykey" json:"id"`
 	Token     string         `gorm:"uniqueIndex;not null" json:"qr_token"`
+	EventID   uint           `gorm:"not null;index" json:"event_id"`
+	Event     Event          `gorm:"foreignKey:EventID" json:"event,omitempty"`
 	ExpiresAt time.Time      `gorm:"not null" json:"expires_at"`
 	IsActive  bool           `gorm:"default:true;index" json:"is_active"`
 	CreatedAt time.Time      `json:"created_at"`

@@ -72,25 +72,40 @@ attendance-backend/
 - Perfil de usuario
 - Cambio de contraseña
 
-### 3. Sistema de Asistencia con QR Dinámico
-- **Generación de QR**: Admin genera QR codes que expiran cada 10 minutos
-- **Marcado por escaneo**: Empleados escanean QR para marcar asistencia
-- **Validación automática**: Sistema valida QR y marca asistencia
-- **One attendance per day**: Solo un registro por usuario por día
-- **Estados automáticos**: Present (antes 9:15 AM), Late (después 9:15 AM)
-- **Historial completo**: Registro de todas las asistencias con QR token usado
-- **Tokens seguros**: UUID v4 para QR codes
+### 3. Sistema de Asistencia Basado en Eventos
+- **Eventos**: Creación y gestión de eventos (reuniones, clases, jornadas laborales).
+- **QR por Evento**: Generación de QRs vinculados a un evento específico.
+- **Marcado por escaneo**: Empleados escanean QR para marcar asistencia a un evento.
+- **Validación**: Sistema valida QR y vincula la asistencia al evento.
+- **Un registro por evento**: Solo un registro por usuario por evento.
 
 ### 4. Gestión de Departamentos
 - CRUD de departamentos
 - Asignación de usuarios a departamentos
 - Managers por departamento
 
+### Event Model
+```go
+type Event struct {
+    ID          uint      `gorm:"primaryKey"`
+    Title       string    `gorm:"not null"`
+    Description string
+    StartTime   time.Time `gorm:"not null"`
+    EndTime     time.Time
+    Location    string
+    IsActive    bool      `gorm:"default:true"`
+    CreatedAt   time.Time
+    UpdatedAt   time.Time
+}
+```
+
 ### QR Code Model
 ```go
 type QRCode struct {
     ID        uint      `gorm:"primaryKey"`
     Token     string    `gorm:"uniqueIndex;not null"` // UUID v4
+    EventID   uint      `gorm:"not null"`
+    Event     Event
     ExpiresAt time.Time `gorm:"not null"`
     IsActive  bool      `gorm:"default:true"`
     CreatedAt time.Time
@@ -123,6 +138,8 @@ type Attendance struct {
     ID        uint      `gorm:"primaryKey"`
     UserID    uint      `gorm:"not null"`
     User      User
+    EventID   uint      `gorm:"not null"`
+    Event     Event
     CheckIn   time.Time `gorm:"not null"`
     Status    string    `gorm:"not null"` // present, late
     Notes     string
@@ -162,15 +179,15 @@ type Department struct {
 - `GET /api/v1/users/me` - Perfil del usuario actual
 - `PUT /api/v1/users/me/password` - Cambiar contraseña
 
-### QR Codes (Admin only)
-- `GET /api/v1/qr/active` - Obtener QR activo (auto-genera si no existe)
-- `POST /api/v1/qr/generate` - Generar nuevo QR code
+### Eventos & QR (Admin only)
+- `GET /api/v1/events` - Listar eventos
+- `POST /api/v1/events` - Crear evento
+- `GET /api/v1/qr/active` - Obtener QR activo para un evento
+- `POST /api/v1/qr/generate` - Generar nuevo QR code para un evento
 
 ### Asistencia
 - `POST /api/v1/attendance/mark` - Marcar asistencia con QR token
-- `GET /api/v1/attendance/today` - Asistencia del día actual
-- `GET /api/v1/attendance/history` - Historial de asistencia (paginado)
-- `GET /api/v1/attendance/range` - Asistencia por rango de fechas
+- `GET /api/v1/attendance/history` - Historial de asistencia
 
 ### Departamentos
 - `GET /api/v1/departments` - Listar departamentos
@@ -178,12 +195,6 @@ type Department struct {
 - `GET /api/v1/departments/:id` - Obtener departamento
 - `PUT /api/v1/departments/:id` - Actualizar departamento (Admin)
 - `DELETE /api/v1/departments/:id` - Eliminar departamento (Admin)
-
-### Reportes
-- `GET /api/v1/reports/attendance` - Reporte de asistencia
-- `GET /api/v1/reports/user/:id` - Reporte por usuario
-- `GET /api/v1/reports/department/:id` - Reporte por departamento
-- `GET /api/v1/reports/export` - Exportar reporte
 
 ## Seguridad
 
@@ -250,13 +261,3 @@ LOG_LEVEL=info
 - Health check endpoint: `GET /health`
 - Metrics endpoint: `GET /metrics` (Prometheus)
 - Error tracking y alertas
-
-## Roadmap Futuro
-
-- [x] Sistema de QR dinámico para asistencia ✅
-- [ ] Notificaciones push
-- [ ] Integración con sistemas de RRHH
-- [ ] Geofencing para validar ubicación
-- [ ] Dashboard de analytics en tiempo real
-- [ ] API GraphQL como alternativa
-- [ ] Microservicios (si escala)

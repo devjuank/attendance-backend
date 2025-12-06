@@ -13,4 +13,6 @@ type AttendanceRepository interface {
 	GetByDateRange(userID uint, startDate, endDate time.Time) ([]models.Attendance, error)
 	Update(attendance *models.Attendance) error
 	GetLastAttendance(userID uint) (*models.Attendance, error)
+	GetByEventAndUser(eventID, userID uint) (*models.Attendance, error)
+	GetByEventID(eventID uint) ([]models.Attendance, error)
 }

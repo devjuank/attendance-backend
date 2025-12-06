@@ -459,57 +459,164 @@ Delete department.
 
 ---
 
-### ⏰ Attendance
+### 📅 Events
 
+#### GET /events
+List all events.
+
+**Authentication:** Required
+
+**Response (200 OK):**
+```json
+[
+  {
+    "id": 1,
+    "title": "Town Hall",
+    "description": "Monthly Town Hall Meeting",
+    "start_time": "2025-12-05T10:00:00Z",
+    "end_time": "2025-12-05T11:00:00Z",
+    "is_active": true,
+    "created_at": "2025-12-04T20:00:00Z"
+  }
+]
+```
+
+#### POST /events
+Create a new event.
+
+**Authentication:** Required
+**Role:** Admin only
+
+**Request Body:**
+```json
+{
+  "title": "Town Hall",
+  "description": "Monthly Town Hall Meeting",
+  "start_time": "2025-12-05T10:00:00Z",
+  "end_time": "2025-12-05T11:00:00Z"
+}
+```
+
+**Response (201 Created):**
+```json
+{
+  "id": 1,
+  "title": "Town Hall",
+  "description": "Monthly Town Hall Meeting",
+  "start_time": "2025-12-05T10:00:00Z",
+  "end_time": "2025-12-05T11:00:00Z",
+  "is_active": true,
+  "created_at": "2025-12-04T20:00:00Z"
+}
+```
+
+---
+
+### ⏰ Attendance & QR
+
+### Get Event Attendance (Admin)
+`GET /api/v1/events/:id/attendance`
+
+Returns the list of attendance records for a specific event.
+
+**Auth required**: Yes (Admin only)
+
+**Response**:
+```json
+[
+  {
+    "id": 1,
+    "user_id": 101,
+    "user": {
+      "id": 101,
+      "first_name": "John",
+      "last_name": "Doe",
+      "email": "john@example.com"
+    },
+    "event_id": 1,
+    "check_in": "2025-12-05T09:05:00Z",
+    "status": "present",
+    "location": "Meeting Room A",
+    "notes": "",
+    "qr_token": "uuid-token"
+  }
+]
+```
+
+### Mark Manual Attendance (Admin)
+`POST /api/v1/events/:id/attendance/manual`
+
+Manually marks attendance for a user in an event.
+
+**Auth required**: Yes (Admin only)
+
+**Body**:
+```json
+{
+  "user_id": 101,
+  "notes": "Forgot phone"
+}
+```
+
+**Response**:
+```json
+{
+  "id": 2,
+  "user_id": 101,
+  "event_id": 1,
+  "check_in": "2025-12-05T09:10:00Z",
+  "status": "present",
+  "location": "Manual Entry",
+  "notes": "Forgot phone"
+}
+```
+
+## QR Codes
 #### GET /qr/active
-Get the currently active QR code for attendance.
+Get the currently active QR codes for a specific event.
 
 **Authentication:** Required  
 **Role:** Admin only
+
+**Query Parameters:**
+- `event_id` (required)
 
 **Response (200 OK):**
 ```json
 {
   "qr_token": "abc123xyz789def456",
+  "event_id": 1,
   "expires_at": "2025-12-04T22:40:00Z",
   "created_at": "2025-12-04T22:30:00Z",
   "is_active": true
 }
 ```
 
-**Response (404 Not Found):**
-```json
-{
-  "error": "no active QR code found"
-}
-```
-
-**Notes:**
-- QR codes auto-expire after 10 minutes
-- Only one QR code can be active at a time
-- Backend auto-generates new QR if none exists or current expired
-
 ---
 
 #### POST /qr/generate
-Force generation of a new QR code (invalidates any previous active QR).
+Generate a new QR code for an event.
 
 **Authentication:** Required  
 **Role:** Admin only
+
+**Request Body:**
+```json
+{
+  "event_id": 1
+}
+```
 
 **Response (201 Created):**
 ```json
 {
   "qr_token": "def456uvw012ghi789",
+  "event_id": 1,
   "expires_at": "2025-12-04T22:50:00Z",
   "created_at": "2025-12-04T22:40:00Z",
   "is_active": true
 }
 ```
-
-**Notes:**
-- Invalidates any previously active QR code
-- New QR is valid for 10 minutes from creation
 
 ---
 
@@ -522,8 +629,8 @@ Mark attendance using scanned QR token.
 ```json
 {
   "qr_token": "abc123xyz789def456",
-  "location": "Oficina Central",
-  "notes": "Marked via QR scan"
+  "location": "Auditorium",
+  "notes": "Scanned at entrance"
 }
 ```
 
@@ -532,63 +639,26 @@ Mark attendance using scanned QR token.
 {
   "id": 15,
   "user_id": 5,
+  "event_id": 1,
   "check_in": "2025-12-04T22:35:00Z",
-  "check_out": null,
   "status": "present",
-  "notes": "Marked via QR scan",
-  "location": "Oficina Central",
-  "created_at": "2025-12-04T22:35:00Z",
-  "updated_at": "2025-12-04T22:35:00Z"
+  "notes": "Scanned at entrance",
+  "location": "Auditorium",
+  "created_at": "2025-12-04T22:35:00Z"
 }
 ```
 
-**Status Values:**
-- `present` - On time (before 9:15 AM)
-- `late` - After 9:15 AM
-- `absent` - No check-in
-
 **Errors:**
 - `400` - Invalid or expired QR token
-- `400` - User already marked attendance today
+- `400` - User already marked attendance for this event
 - `404` - QR token not found
 
 ---
 
-#### GET /attendance/today
-Get today's attendance for current user.
-
-**Authentication:** Required
-
-**Response (200 OK):**
-```json
-{
-  "id": 1,
-  "user_id": 1,
-  "check_in": "2025-12-04T09:30:00Z",
-  "check_out": "2025-12-04T18:00:00Z",
-  "status": "late",
-  "notes": "Entrada del día",
-  "location": "Oficina Central",
-  "created_at": "2025-12-04T09:30:00Z",
-  "updated_at": "2025-12-04T18:00:00Z"
-}
-```
-
-**Errors:**
-- `404` - No attendance record for today
-
----
-
 #### GET /attendance/history
-Get attendance history for current user (paginated).
+Get attendance history for current user.
 
 **Authentication:** Required
-
-**Query Parameters:**
-- `page` (optional, default: 1)
-- `limit` (optional, default: 10)
-
-**Example:** `/attendance/history?page=1&limit=10`
 
 **Response (200 OK):**
 ```json
@@ -597,13 +667,15 @@ Get attendance history for current user (paginated).
     {
       "id": 5,
       "user_id": 1,
+      "event_id": 1,
+      "event": {
+        "title": "Town Hall",
+        "start_time": "2025-12-05T10:00:00Z"
+      },
       "check_in": "2025-12-04T09:30:00Z",
-      "check_out": "2025-12-04T18:00:00Z",
-      "status": "late",
+      "status": "present",
       "notes": "Día completo",
-      "location": "Oficina Central",
-      "created_at": "2025-12-04T09:30:00Z",
-      "updated_at": "2025-12-04T18:00:00Z"
+      "location": "Oficina Central"
     }
   ],
   "total": 25,
@@ -611,39 +683,6 @@ Get attendance history for current user (paginated).
   "limit": 10
 }
 ```
-
----
-
-#### GET /attendance/range
-Get attendance records for a date range.
-
-**Authentication:** Required
-
-**Query Parameters (required):**
-- `start_date` - Format: YYYY-MM-DD
-- `end_date` - Format: YYYY-MM-DD
-
-**Example:** `/attendance/range?start_date=2025-12-01&end_date=2025-12-31`
-
-**Response (200 OK):**
-```json
-[
-  {
-    "id": 1,
-    "user_id": 1,
-    "check_in": "2025-12-01T09:00:00Z",
-    "check_out": "2025-12-01T18:00:00Z",
-    "status": "present",
-    "notes": "",
-    "location": "Oficina Central",
-    "created_at": "2025-12-01T09:00:00Z",
-    "updated_at": "2025-12-01T18:00:00Z"
-  }
-]
-```
-
-**Errors:**
-- `400` - Invalid date format or missing parameters
 
 ---
 
@@ -667,12 +706,12 @@ Get attendance records for a date range.
 | POST /departments | - | - | - | ✅ |
 | PUT /departments/:id | - | - | - | ✅ |
 | DELETE /departments/:id | - | - | - | ✅ |
+| GET /events | - | ✅ | ✅ | ✅ |
+| POST /events | - | - | - | ✅ |
 | GET /qr/active | - | - | - | ✅ |
 | POST /qr/generate | - | - | - | ✅ |
 | POST /attendance/mark | - | ✅ | ✅ | ✅ |
-| GET /attendance/today | - | ✅ | ✅ | ✅ |
 | GET /attendance/history | - | ✅ | ✅ | ✅ |
-| GET /attendance/range | - | ✅ | ✅ | ✅ |
 
 ---
 
@@ -698,16 +737,6 @@ All error responses follow this format:
 
 ---
 
-## 📝 Notes
-
-1. **Date/Time Format**: All timestamps are in ISO 8601 format (UTC)
-2. **Pagination**: Default page size is 10, maximum is 100
-3. **Authentication**: Include `Authorization: Bearer <token>` header for protected endpoints
-4. **CORS**: Configured to allow requests from frontend origins
-5. **Content-Type**: All requests/responses use `application/json`
-
----
-
 ## 🔗 Test Account
 
 For development and testing:
@@ -720,6 +749,6 @@ Role: admin
 
 ---
 
-**Last Updated:** 2025-12-04  
+**Last Updated:** 2025-12-05  
 **API Version:** v1  
 **Backend Repository:** https://github.com/devjuank/attendance-backend

@@ -11,22 +11,27 @@ import (
 
 type AttendanceServiceImpl struct {
 	attendanceRepo repositories.AttendanceRepository
+	qrService      services.QRService
 }
 
-func NewAttendanceService(attendanceRepo repositories.AttendanceRepository) services.AttendanceService {
+func NewAttendanceService(attendanceRepo repositories.AttendanceRepository, qrService services.QRService) services.AttendanceService {
 	return &AttendanceServiceImpl{
 		attendanceRepo: attendanceRepo,
+		qrService:      qrService,
 	}
 }
 
 func (s *AttendanceServiceImpl) MarkAttendance(req *services.MarkAttendanceRequest) (*models.Attendance, error) {
-	// Check if user already marked attendance today
-	today := time.Now().Truncate(24 * time.Hour)
-	tomorrow := today.Add(24 * time.Hour)
+	// Validate QR token
+	qr, err := s.qrService.ValidateToken(req.QRToken)
+	if err != nil {
+		return nil, err
+	}
 
-	existingAttendances, err := s.attendanceRepo.GetByDateRange(req.UserID, today, tomorrow)
-	if err == nil && len(existingAttendances) > 0 {
-		return nil, errors.New("user already marked attendance today")
+	// Check if user already marked attendance for this event
+	existingAttendance, err := s.attendanceRepo.GetByEventAndUser(qr.EventID, req.UserID)
+	if err == nil && existingAttendance != nil {
+		return nil, errors.New("user already marked attendance for this event")
 	}
 
 	// Determine status based on check-in time
@@ -36,6 +41,7 @@ func (s *AttendanceServiceImpl) MarkAttendance(req *services.MarkAttendanceReque
 	// Create attendance record
 	attendance := &models.Attendance{
 		UserID:   req.UserID,
+		EventID:  qr.EventID,
 		CheckIn:  now,
 		Status:   string(status),
 		Location: req.Location,
@@ -101,4 +107,36 @@ func (s *AttendanceServiceImpl) calculateStatus(checkInTime time.Time) models.At
 	}
 
 	return models.StatusPresent
+}
+
+func (s *AttendanceServiceImpl) GetEventAttendance(eventID uint) ([]models.Attendance, error) {
+	return s.attendanceRepo.GetByEventID(eventID)
+}
+
+func (s *AttendanceServiceImpl) MarkManualAttendance(eventID, userID uint, notes string) (*models.Attendance, error) {
+	// Check if user already marked attendance for this event
+	existingAttendance, err := s.attendanceRepo.GetByEventAndUser(eventID, userID)
+	if err == nil && existingAttendance != nil {
+		return nil, errors.New("user already marked attendance for this event")
+	}
+
+	now := time.Now()
+	// Manual entry is typically considered "present" or we could calculate logic.
+	// For simplicity, let's calculate status normally.
+	status := s.calculateStatus(now)
+
+	attendance := &models.Attendance{
+		UserID:   userID,
+		EventID:  eventID,
+		CheckIn:  now,
+		Status:   string(status),
+		Notes:    notes,
+		Location: "Manual Entry",
+	}
+
+	if err := s.attendanceRepo.Create(attendance); err != nil {
+		return nil, err
+	}
+
+	return attendance, nil
 }
