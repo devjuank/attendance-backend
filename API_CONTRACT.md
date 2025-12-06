@@ -618,7 +618,32 @@ Generate a new QR code for an event.
 }
 ```
 
+
 ---
+
+#### POST /qr/deactivate
+Deactivate the current QR code for an event.
+
+**Authentication:** Required  
+**Role:** Admin only
+
+**Request Body:**
+```json
+{
+  "event_id": 1
+}
+```
+
+**Response (200 OK):**
+```json
+{
+  "message": "QR code deactivated",
+  "event_id": 1
+}
+```
+
+---
+
 
 #### POST /attendance/mark
 Mark attendance using scanned QR token.
